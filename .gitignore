@@ -1,0 +1,23 @@
+# Build output
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & local data
+*.log
+data/
+*.db
+
+# Environment secrets — 绝不上传敏感信息
+.env
+*.env.local
