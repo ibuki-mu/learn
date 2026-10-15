@@ -59,16 +59,37 @@
 3. 原子 commit（消息格式 `feat(P-A): ...` / `docs(roadmap): ...`）
 4. 同步更新 [`KNOWLEDGE-GRAPH.md`](KNOWLEDGE-GRAPH.md) 的状态列
 
-## 开局阻塞项
+## 环境与开局阻塞项
+
+**已就绪**
+
+| 项 | 版本 | 说明 |
+|---|---|---|
+| git | 2.56.0 | 仓库已 `git init`，本地 user.name/email 已配 |
+| JDK | Zulu 21.0.12.1 LTS (`Zulu21.52+203-CA`) | 免 root 安装于 `.toolchain/jdk21`，`javac`/`java` 已实测可用 |
+
+**JDK 使用方式**（每个新 shell 需先激活，或用绝对路径）
+
+```bash
+source .toolchain/env.sh   # 设置 JAVA_HOME + PATH
+java -version
+```
+
+> `.toolchain/` 已在 `.gitignore` 中，不随仓库分发。换机器需重装：
+> 从 `https://cdn.azul.com/zulu/bin/` 取 `zulu21.*-ca-jdk21*-linux_x64.tar.gz`，解压后建软链 `jdk21`。
+
+**未就绪 / 阻塞**
 
 | 项 | 状态 | 影响 | 处理 |
 |---|---|---|---|
-| 本机无 `java` | ❌ | P-A 无法编译运行 | 需安装 JDK 17 或 21 |
-| 本机无 `mvn` | ❌ | 无法构建 | 需安装 Maven 3.9+，或先纯 `javac` 起步 |
-| 本机无 `mysql` | ❌ | P-C 无法开工 | 第 5 周前安装 MySQL 8 + 客户端 |
-| git 仓库 | ✅ | — | 已 `git init` |
+| `mvn` | ❌ | 无法构建，但**不阻塞 M1** | M1 用裸 `javac` + `java` 起步；W1 内再装 Maven 3.9+ 免安装版到 `.toolchain/` |
+| `mysql` | ❌ | P-C 无法开工 | 第 5 周前解决（用户已决定到时再议） |
+| Docker | ❌ | 第三阶段需要 | 到时再议 |
+| **磁盘可用 1.7G（96% 已用）** | ⚠️ | Maven + 依赖 + 构建产物约需 300–500MB，尚可但接近临界 | 开工前清理大文件；`~/.m2` 会占用额外空间，必要时把本地仓库也放到 `.toolchain/` |
 
 ## 当前状态
 
-- **在途**：P-A 已定义（[`projects/P-A-todo.md`](projects/P-A-todo.md)），尚未开始编码。
-- **下一步**：安装 JDK → 完成 P-A 第 1 周里程碑 M1。
+- **在途**：P-A 已定义（[`projects/P-A-todo.md`](../projects/P-A-todo.md)），尚未开始编码。
+- **下一步**：完成 P-A 里程碑 **M1**（内存版能跑）——`MyArrayList` + `MyHashMap` + 领域模型 + 内存 CRUD + 基础 CLI + 集合单测。
+- **不再讨论**：项目选型、技术栈、时间盒。
+

@@ -2,6 +2,10 @@
 target/
 *.class
 
+# 工作区本地工具链（JDK 等），不入库
+.toolchain/
+.tools/
+
 # IDE
 .idea/
 *.iml
