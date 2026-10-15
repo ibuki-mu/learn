@@ -90,7 +90,7 @@
 
 **底层（本项目核心）**
 
-- [ ] 不用 `java.util.ArrayList` / `HashMap` / `LinkedList`；`grep` 可证
+- [ ] 不用 `java.util.ArrayList` / `HashMap` / `LinkedList`；用 `README.md` §自查命令 的精确 grep 可证
 - [ ] `MyArrayList` 扩容行为有测试证明
 - [ ] `MyHashMap` 能复现哈希冲突，阈值触发与退化有测试证明
 - [ ] 能口头解释：初始容量、负载因子 0.75 的取舍、2 的幂原因、rehash 成本
