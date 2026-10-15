@@ -12,38 +12,51 @@ source ../../.toolchain/env.sh   # 激活 Zulu JDK 21（JAVA_HOME + PATH）
 ## 目录约定
 
 ```
+pom.xml                          Maven 构建（唯一构建入口）
+mvnw / .mvn/                     Maven Wrapper（保证版本一致）
 src/main/java/com/learn/todo/
 ├── collection/   自研集合：MyList / MyArrayList / MyHashMap   ← 本项目核心，手写
 ├── model/        领域模型：Todo、Priority                    ← 手写
 ├── exception/    业务异常体系：TodoException 及子类            ← 手写
 ├── storage/      文件格式编解码                               ← 手写
 └── cli/          命令行入口与参数解析                          ← 手写
-src/test/java/com/learn/todo/
-├── testing/      Check 断言工具（零依赖，替代 JUnit）
-└── collection/   MyArrayListSmokeTest 等
-out/              编译产物（已忽略，不入库）
+src/test/java/com/learn/todo/   JUnit 5 测试
+target/                         Maven 编译产物（已忽略，不入库）
 ```
 
-> `src/test/.../testing/Check.java` 是**自研断言工具**。为什么不用 JUnit：裸 javac 阶段挂 JUnit 需要手动管 jar 与 classpath，且用库来测自研集合不如顺手把断言也写一遍。接入 Maven 后可平滑换成 JUnit 5。
+## 构建与运行
 
-## 构建与运行（M1 阶段：裸 javac，无 Maven）
-
-`javac` 是**文件路径驱动**，不是包名驱动——所以下面的 `-d` 输出目录 + `find` 把所有 `.java` 一起喂给它，是裸用 javac 的标准做法。classpath（`-cp`）告诉 JVM 去哪找已编译的类，这正是框架平时替你做的事。
+先激活工具链（每个新 shell 都要做）：
 
 ```bash
-cd projects/P-A-todo
+source ../../.toolchain/env.sh   # JAVA_HOME + Maven + 工作区本地仓库
+```
 
-# 编译主程序（首次运行会创建 out/）
-javac -encoding UTF-8 -d out $(find src/main/java -name '*.java')
+常用命令（**在 `projects/P-A-todo` 下执行**）：
 
-# 编译测试（测试依赖主程序，所以要 -cp out）
-javac -encoding UTF-8 -cp out -d out $(find src/test/java -name '*.java')
+```bash
+mvn test                         # 编译 + 跑全部测试
+mvn test -Dtest=MyArrayListTest  # 只跑指定测试类
+mvn test -Dtest='MyArrayListTest$Growth'   # 只跑某个 @Nested 分组
+mvn clean test                   # 清掉 target/ 重来（改pom或依赖异常时用）
+mvn -q compile                   # 静默模式，只看编译错误
+```
 
-# 运行集合冒烟测试（M1 第一阶段目标：全绿，退出码 0）
-java -cp out com.learn.todo.collection.MyArrayListSmokeTest
+**IDEA 里**：直接点类名或方法左侧的绿色三角；或 `Ctrl+Shift+F10`。
 
-# 运行主程序（M1 后段才有 Main）
-java -cp out com.learn.todo.cli.Main
+### 本地仓库为什么不写 `~/.m2`
+
+`env.sh` 通过 `MAVEN_ARGS` 把 `-s .toolchain/settings.xml` 传给每个 `mvn` 调用，`settings.xml` 里把 `localRepository` 指向 `.toolchain/m2`。原因：磁盘余量紧张，且便于随工作区整体删除。
+
+> **注意**：仓库自带 `./mvnw`（Maven Wrapper），但它会把 Maven 发行版下到 `~/.m2/wrapper`，与 `.toolchain/maven` 重复 9MB。**优先用 `mvn`（经 `env.sh` 激活）**；`./mvnw` 只作为换机器/CI 的兜底。
+
+### 为什么用 Maven 而不是裸 javac
+
+裸 javac 有个值得知道的事实，Maven 全都替你做了：**`javac` 是文件路径驱动，`java -cp` 是 classpath 驱动**。IDEA 和 Maven 把这个过程隐藏了，这也是"底层被框架掩盖"的一种形式。你可以偶尔手跑一次感受它：
+
+```bash
+javac -encoding UTF-8 -d /tmp/pA-out $(find src/main/java -name '*.java')
+java -cp /tmp/pA-out com.learn.todo.cli.Main
 ```
 
 ## 自查命令

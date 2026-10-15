@@ -1,0 +1,15 @@
+# 换行符策略：跨平台一致
+# 默认：入库统一 LF
+* text=auto eol=lf
+
+# Windows 批处理必须保留 CRLF，否则在 Windows 上无法执行
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制文件不参与换行符转换
+*.jar binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary
+*.gz binary

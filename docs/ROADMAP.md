@@ -66,30 +66,34 @@
 | 项 | 版本 | 说明 |
 |---|---|---|
 | git | 2.56.0 | 仓库已 `git init`，本地 user.name/email 已配 |
-| JDK | Zulu 21.0.12.1 LTS (`Zulu21.52+203-CA`) | 免 root 安装于 `.toolchain/jdk21`，`javac`/`java` 已实测可用 |
+| JDK | Zulu 21.0.12.1 LTS (`Zulu21.52+203-CA`) | 免 root 安装于 `.toolchain/jdk21` |
+| Maven | 3.9.16 | 免 root 安装于 `.toolchain/maven`；本地仓库固定在 `.toolchain/m2`（不写 `~/.m2`） |
+| IDE | IntelliJ IDEA 2026.2 | SDK 已注册为 `zulu-21`，指向 `.toolchain/` |
 
-**JDK 使用方式**（每个新 shell 需先激活，或用绝对路径）
+**工具链使用方式**（每个新 shell 需先激活）
 
 ```bash
-source .toolchain/env.sh   # 设置 JAVA_HOME + PATH
-java -version
+source .toolchain/env.sh   # JAVA_HOME + Maven + 工作区本地仓库，并自检版本
 ```
 
+`env.sh` 通过 `MAVEN_ARGS` 把 `-s .toolchain/settings.xml` 传给每个 `mvn` 调用。**不要依赖 `~/.m2`**。
+
 > `.toolchain/` 已在 `.gitignore` 中，不随仓库分发。换机器需重装：
-> 从 `https://cdn.azul.com/zulu/bin/` 取 `zulu21.*-ca-jdk21*-linux_x64.tar.gz`，解压后建软链 `jdk21`。
+> - JDK：从 `https://cdn.azul.com/zulu/bin/` 取 `zulu21.*-ca-jdk21*-linux_x64.tar.gz`，解压后建软链 `jdk21`
+> - Maven：从 `https://dlcdn.apache.org/maven/maven-3/<版本>/binaries/` 取 `-bin.tar.gz`，解压后建软链 `maven`
 
 **未就绪 / 阻塞**
 
 | 项 | 状态 | 影响 | 处理 |
 |---|---|---|---|
-| `mvn` | ❌ | 无法构建，但**不阻塞 M1** | M1 用裸 `javac` + `java` 起步；W1 内再装 Maven 3.9+ 免安装版到 `.toolchain/` |
 | `mysql` | ❌ | P-C 无法开工 | 第 5 周前解决（用户已决定到时再议） |
 | Docker | ❌ | 第三阶段需要 | 到时再议 |
-| **磁盘可用 1.7G（96% 已用）** | ⚠️ | Maven + 依赖 + 构建产物约需 300–500MB，尚可但接近临界 | 开工前清理大文件；`~/.m2` 会占用额外空间，必要时把本地仓库也放到 `.toolchain/` |
+| **磁盘可用 1.8G（95% 已用）** | ⚠️ | 当前 `.toolchain/m2` 仅 25MB（JUnit 5 全套）；后续加 Mockito/覆盖率插件 + P-C/P-B 依赖会持续增长 | 用户已自行清理；如后续吃紧，优先清 `.toolchain/m2` 中无用依赖与 `target/` |
 
 ## 当前状态
 
-- **在途**：P-A 已定义（[`projects/P-A-todo.md`](../projects/P-A-todo.md)），尚未开始编码。
-- **下一步**：完成 P-A 里程碑 **M1**（内存版能跑）——`MyArrayList` + `MyHashMap` + 领域模型 + 内存 CRUD + 基础 CLI + 集合单测。
-- **不再讨论**：项目选型、技术栈、时间盒。
+- **在途**：P-A 已转为 Maven 工程（`pom.xml` + JUnit 5），**代码尚未实现**。
+- **已验证**：`mvn test` 能发现并执行 13 个测试，全部因 `MyArrayList` 构造器为 TODO 而失败（预期状态）。
+- **下一步**：实现 `MyArrayList` 让 [`MyArrayListTest`](../projects/P-A-todo/src/test/java/com/learn/todo/collection/MyArrayListTest.java) 全绿。
+- **不再讨论**：项目选型、技术栈、时间盒、构建方式（已定 Maven）。
 

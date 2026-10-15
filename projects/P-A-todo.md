@@ -42,7 +42,7 @@
 
 - **存储格式用自定义 `|` 分隔文本，不用 JSON。**
   理由：① 文件格式设计属于「必须自己来」的架构范畴（`AGENTS.md` 规则 11）；② JSON 手写解析器会大幅超出时间盒；③ 自研格式无 parser 兼容性风险，能稳定验收。字段顺序 `id|priority|completed|dueDate|createdAt|title`，`title` 中的 `|`、`\`、换行需转义。
-- **构建用 Maven**，JDK 17，依赖仅 JUnit 5 + surefire。不引 Lombok、Jackson、Guava、Commons。
+- **构建用 Maven**（`maven.compiler.release=21`），依赖按需引入：M1 仅 JUnit 5；Mockito 与覆盖率插件留到 M2/M3。不引 Lombok、Jackson、Guava、Commons。
 - **不做并发**。线程安全不是本项目目标，留到第一阶段后段的并发专题。
 
 ## 5. 里程碑与时间盒

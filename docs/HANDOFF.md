@@ -135,9 +135,10 @@
 - **已确认的项目口径**：P-A 待办管理器（纯 Java）→ P-C 图书借阅（纯 JDBC + MySQL）→ P-B 任务管理系统（Spring Boot，复用 Todo 域）。
 - **在途状态（截至本版本）**：
   - git 仓库已初始化；`ROADMAP.md`、`KNOWLEDGE-GRAPH.md`、`projects/P-A-todo.md` 已建立。
-  - **P-A 已定义完毕，尚未开始编码。**
-  - **开局阻塞**：本机无 `java`、`mvn`、`mysql`，需先装 JDK 17（见 [`ROADMAP.md`](ROADMAP.md) 开局阻塞项）。
-- **下一步**：安装 JDK → 完成 P-A 里程碑 M1（内存版能跑）。**不要重新讨论项目选型。**
+  - **工具链已就绪**：Zulu JDK 21 + Maven 3.9.16 免 root 安装于 `.toolchain/`，`source .toolchain/env.sh` 激活；IDEA 2026.2 的 SDK 已注册为 `zulu-21`。
+  - **P-A 已转为 Maven 工程 + JUnit 5**，`mvn test` 已验证可用（13 个测试全部因构造器 TODO 而失败，属预期）。
+  - **P-A 代码尚未实现**：`MyArrayList` 全部方法留 TODO，等用户手写。
+- **下一步**：用户实现 `MyArrayList` 使其单测全绿；完成后由**独立子代理**做代码审查（不自审），再出复测题更新知识图谱。**不要重新讨论项目选型与构建方式。**
 
 ---
 
