@@ -138,7 +138,40 @@
   - **工具链已就绪**：Zulu JDK 21 + Maven 3.9.16 免 root 安装于 `.toolchain/`，`source .toolchain/env.sh` 激活；IDEA 2026.2 的 SDK 已注册为 `zulu-21`。
   - **P-A 已转为 Maven 工程 + JUnit 5**，`mvn test` 已验证可用（13 个测试全部因构造器 TODO 而失败，属预期）。
   - **P-A 代码尚未实现**：`MyArrayList` 全部方法留 TODO，等用户手写。
+- **已知环境坑（接手前必读）**：`mvn`/`java` **不在新终端的 `PATH` 里**，因为 `env.sh` 的 `export` 只对「被 source 的那个 shell」生效。用户尚未决定是否写入 `~/.bashrc`（我不擅自改工作区外文件）。当前可用做法：先 `source /home/ibukimu/learn/.toolchain/env.sh` 再 `mvn test`；或在 IDEA 内点绿三角。
 - **下一步**：用户实现 `MyArrayList` 使其单测全绿；完成后由**独立子代理**做代码审查（不自审），再出复测题更新知识图谱。**不要重新讨论项目选型与构建方式。**
+
+---
+
+## 7.1 本次会话已完成事项（提交索引）
+
+| commit | 内容 |
+|---|---|
+| `362d62a` | 建立路线图 / 知识图谱真相源 + P-A 项目定义 + `.gitignore` |
+| `95a3ada` | 免 root 安装 Zulu JDK 21 到 `.toolchain/`，`env.sh` 实测通过 |
+| `e0d5df8` | M1 脚手架：`MyList` 契约 + `MyArrayList` TODO 骨架 + 冒烟测试 + README |
+| `49c239a` | 转 Maven 3.9.16 + JUnit 5（`@Nested` 13 测试），删旧 IDEA 配置，加 `.gitattributes` |
+| 待提交 | `mvnw` 环境自动激活（见上方「已知环境坑」） |
+
+**本会话关键决策**
+
+1. 项目串联定为 **A（纯 Java）→ C1 图书借阅（纯 JDBC+MySQL）→ B 任务管理（Spring Boot）**，同域递进。
+2. C 的项目域选 **C1 图书借阅而非通讯录**——借书需事务，通讯录单表练不到 JOIN/事务/索引。
+3. P-A 存储用**自定义 `|` 分隔文本，不用 JSON**（JSON 手写解析器会吃掉整个时间盒）。
+4. P-A **不做并发**，留给第一阶段后段专题。
+5. 构建方式由「裸 javac」改为 **Maven + JUnit 5**，因为用户选择走 IDEA 工作流（IDEA 的调试/覆盖率/重构都构建在 Maven 之上）。
+6. Maven 本地仓库固定 `.toolchain/m2`，**不污染 `~/.m2`**（磁盘仅剩 1.8G）。
+7. 删除自研 `Check` 断言工具——其存在理由（避免用 `java.util` 测自研集合）已被 JUnit 取代。
+8. 核心代码（`MyArrayList`/`MyHashMap`/异常/序列化/CLI）**全部留给用户手写**，AI 只做脚手架、评审、出题。
+
+**本会话拦掉的坑**
+
+- 冒烟测试原用 `java.util.ArrayList` → 会污染「不用 JDK 集合」的 grep 自查，改为 JUnit。
+- 自查 grep 原样写会因**文档注释里的字样**产生假阳性 → 换成只查 `import` 与 `new` 的精确模式。
+- `mvnw.cmd` 的 CRLF 被 git 转成 LF → 加 `.gitattributes` 强制 `*.cmd` 保持 CRLF。
+- `./mvnw` 不可靠：需要 `JAVA_HOME`，且要写 `~/.m2/wrapper`（该路径只读）。
+- IDEA 自动把 `src/main` 与 `src/test` 识别成两个模块（应为单一模块）→ 方案改为在 IDEA 中直接打开 `projects/P-A-todo`。
+
 
 ---
 
