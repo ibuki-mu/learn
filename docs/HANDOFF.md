@@ -150,8 +150,8 @@
 | `362d62a` | 建立路线图 / 知识图谱真相源 + P-A 项目定义 + `.gitignore` |
 | `95a3ada` | 免 root 安装 Zulu JDK 21 到 `.toolchain/`，`env.sh` 实测通过 |
 | `e0d5df8` | M1 脚手架：`MyList` 契约 + `MyArrayList` TODO 骨架 + 冒烟测试 + README |
-| `49c239a` | 转 Maven 3.9.16 + JUnit 5（`@Nested` 13 测试），删旧 IDEA 配置，加 `.gitattributes` |
-| 待提交 | `mvnw` 环境自动激活（见上方「已知环境坑」） |
+| `49c239a` | 转 Maven 3.9.16 + JUnit 5（`@Nested` 13 测试），删旧 IDEA 配置，加 `.gitattributes`，随附 `mvnw` / `.mvn` wrapper |
+| `b5096c6` | 本交接摘要：提交索引、关键决策、已拦坑位 |
 
 **本会话关键决策**
 
