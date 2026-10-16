@@ -30,7 +30,7 @@
 
 | # | 交付物 | 具体要求 |
 |---|---|---|
-| 1 | `MyArrayList<E>` | 内部数组；容量按 **2 倍**扩容；实现增删改查、`size`，不用 `java.util.*` 集合 |
+| 1 | `MyArrayList<E>` | 内部数组；容量按 **1.5 倍**扩容（`old + (old >> 1)`，对齐 JDK `ArrayList`）；实现增删改查、`size`，不用 `java.util.*` 集合 |
 | 2 | `MyHashMap<K,V>` | 数组 + 链表；容量始终为 2 的幂；负载因子 **0.75**；2 倍扩容并 rehash |
 | 3 | 树化阈值 | 单桶链表长度 **≥ 8 且 容量 ≥ 64** 时桶内转树；树节点数降到 **6** 时退化回链表。树可用简化 BST，**重点是把阈值与触发条件跑出来并用测试证明** |
 | 4 | 异常体系 | 基类 `TodoException`；`TodoNotFoundException`(unchecked)；`InvalidTodoFormatException`(checked)。**必须能解释为什么这样分** |
@@ -44,6 +44,8 @@
   理由：① 文件格式设计属于「必须自己来」的架构范畴（`AGENTS.md` 规则 11）；② JSON 手写解析器会大幅超出时间盒；③ 自研格式无 parser 兼容性风险，能稳定验收。字段顺序 `id|priority|completed|dueDate|createdAt|title`，`title` 中的 `|`、`\`、换行需转义。
 - **构建用 Maven**（`maven.compiler.release=21`），依赖按需引入：M1 仅 JUnit 5；Mockito 与覆盖率插件留到 M2/M3。不引 Lombok、Jackson、Guava、Commons。
 - **不做并发**。线程安全不是本项目目标，留到第一阶段后段的并发专题。
+- **`MyArrayList` 实现口径（已定，不再讨论）**：① 扩容 **1.5 倍**（`old + (old >> 1)`，对齐 JDK）；② 越界抛 JDK `IndexOutOfBoundsException`，不自研异常；③ `removeAt` 后把腾出的末尾槽位置 `null`；④ 允许 `null` 元素，`indexOf(null)` 返回首个 null 的下标（null-aware），故 `remove(null)` 命中返回 `true`；⑤ `clear()` 换新数组。
+  理由、代价与**必踩坑位**写在 [`MyArrayList`](P-A-todo/src/main/java/com/learn/todo/collection/MyArrayList.java) 类注释，修改前先读它。
 
 ## 5. 里程碑与时间盒
 
@@ -117,7 +119,7 @@
 必须在**不看代码**的情况下口头完成：
 
 1. 画并讲清 `MyHashMap` 结构：冲突如何解决、何时转树、为何退化阈值是 6 而非 8
-2. 讲清 `MyArrayList` 扩容为什么选 2 倍，均摊代价怎么算
+2. 讲清 `MyArrayList` 扩容为什么是 1.5 倍（`old + (old>>1)`），扩容一次拷贝多少引用、均摊代价怎么算
 3. 说明异常体系划分，以及 `InvalidTodoFormatException` 为什么必须是 checked
 4. 演示：跑起来 → 添加 → 过滤 → 排序 → 退出 → 重启数据还在
 5. 演示：手动破坏数据文件 → 程序优雅降级

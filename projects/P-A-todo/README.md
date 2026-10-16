@@ -1,6 +1,6 @@
 # P-A — 待办事项管理器（纯 Java 命令行）
 
-> 项目定义见 [`../../docs/P-A-todo.md`](../../docs/P-A-todo.md) → 实际路径 [`projects/P-A-todo.md`](../P-A-todo.md)。
+> 项目定义见 [`projects/P-A-todo.md`](../P-A-todo.md)。
 > **约束**：禁用 Spring / MyBatis / 任何第三方持久化或集合库。集合、异常体系、序列化必须手写。
 
 ## 环境
@@ -79,6 +79,14 @@ grep -rnE '^[[:space:]]*import[[:space:]]+java\.util\.(ArrayList|HashMap|LinkedL
 
 ## 待办（自己决策，别问 AI 要答案）
 
-- `MyArrayList` 扩容选 2 倍还是 1.5 倍？写出你的理由与均摊代价推导。
+- `MyArrayList` 扩容一次要拷贝多少个引用？均摊代价怎么推导？（口径已定 1.5 倍，推导仍由你写）
 - `Todo.equals` 按 id 比还是按全部字段比？在什么场景下会出错？
-- 越界时抛 JDK 的 `IndexOutOfBoundsException` 还是自研异常？两者各自代价是什么？
+
+## 已定实现口径
+
+`MyArrayList` 的 5 条决策（扩容 1.5 倍、越界用 JDK 异常、末尾槽位置 `null`、null-aware `indexOf`、`clear` 换新数组）连同**必踩坑位**，统一记录在：
+
+- [`MyArrayList` 类注释](src/main/java/com/learn/todo/collection/MyArrayList.java)
+- [`P-A-todo.md`](../P-A-todo.md) §4
+
+**此文件不再重复**（单一真相源）。
