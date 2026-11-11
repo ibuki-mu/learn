@@ -29,3 +29,6 @@ data/
 # Environment secrets — 绝不上传敏感信息
 .env
 *.env.local
+
+# 临时交接文档
+docs/HANDOFF.md
