@@ -142,7 +142,7 @@ public class MyArrayList<E> implements MyList<E> {
     public int indexOf(E element) {
         // 坑：别写成 element.equals(...)，element 为 null 时会 NPE
         for (int i = 0; i < size; i++) {
-            if (Objects.equals(elements[i],element)) return i;
+            if (Objects.equals(elements[i], element)) return i;
         }
         return -1;
     }
