@@ -9,8 +9,9 @@ package com.learn.todo.collection;
  *
  * <p>契约约定（实现必须遵守，测试会验证）：
  * <ul>
- *   <li>{@code size()} 永远等于逻辑元素个数，且 {@code 0 <= size() <= DEFAULT_CAPACITY 的扩展上限}</li>
- *   <li>所有按下标访问的方法，下标合法区间为 {@code [0, size()-1]}，越界行为见各方法说明</li>
+ *   <li>{@code size()} 永远等于逻辑元素个数，且 {@code 0 <= size() <= 底层数组长度}（容量无固定上限，随扩容增长）</li>
+ *   <li>按下标访问的方法中，{@code add(int, E)} 的合法区间是 {@code [0, size()]}（可在末尾插入），
+ *       其余读/改/删是 {@code [0, size()-1]}；越界抛 {@link IndexOutOfBoundsException}</li>
  *   <li>{@code add(null)} 允许（本集合不禁止 null），但实现必须在文档中说明该选择</li>
  *   <li>元素顺序按插入先后保持</li>
  * </ul>

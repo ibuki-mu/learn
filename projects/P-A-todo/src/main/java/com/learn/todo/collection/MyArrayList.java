@@ -1,5 +1,7 @@
 package com.learn.todo.collection;
 
+import java.util.Objects;
+
 /**
  * {@link MyList} 的顺序表实现 —— <b>本项目核心手写物，禁止 AI 代写。</b>
  *
@@ -30,13 +32,19 @@ package com.learn.todo.collection;
  */
 public class MyArrayList<E> implements MyList<E> {
 
-    /** 底层存储。逻辑长度为 {@link #size}，物理长度为 {@link #elements}{@code .length}。 */
+    /**
+     * 底层存储。逻辑长度为 {@link #size}，物理长度为 {@link #elements}{@code .length}。
+     */
     private Object[] elements;
 
-    /** 逻辑元素个数。不变量：{@code 0 <= size <= elements.length}。 */
+    /**
+     * 逻辑元素个数。不变量：{@code 0 <= size <= elements.length}。
+     */
     private int size;
 
-    /** 使用 {@link MyList#DEFAULT_CAPACITY} 作为初始容量。 */
+    /**
+     * 使用 {@link MyList#DEFAULT_CAPACITY} 作为初始容量。
+     */
     public MyArrayList() {
         this(DEFAULT_CAPACITY);
     }
@@ -47,8 +55,11 @@ public class MyArrayList<E> implements MyList<E> {
      * @param initialCapacity 若为负数，抛 {@link IllegalArgumentException}
      */
     public MyArrayList(int initialCapacity) {
-        // TODO(你): 校验 initialCapacity 并分配底层数组，size 置 0
-        throw new UnsupportedOperationException("TODO: 实现 MyArrayList 构造器");
+        if (initialCapacity < 0) {
+            throw new IllegalArgumentException("列表容量不能为负数");
+        }
+        elements = new Object[initialCapacity];
+        size = 0;
     }
 
     @Override
@@ -61,62 +72,90 @@ public class MyArrayList<E> implements MyList<E> {
         return size == 0;
     }
 
+    /** 包级测试接缝：只给同包测试断言扩容行为用，不在 {@link MyList} 契约里。 */
+    int capacity() { return elements.length; }
+
     @Override
     public boolean add(E e) {
-        // TODO(你): 先确保容量够（不够则 grow），再写入 elements[size]，最后 size++
-        throw new UnsupportedOperationException("TODO: 实现 add(E)");
+        ensureCapacity(size + 1);
+        elements[size] = e;
+        size++;
+        return true;
     }
 
     @Override
     public void add(int index, E element) {
-        // TODO(你): 校验 index ∈ [0, size]；确保容量；把 [index, size) 整体后移一位；写入；size++
-        throw new UnsupportedOperationException("TODO: 实现 add(int, E)");
+        checkPositionIndex(index);
+        ensureCapacity(size + 1);
+        if (index == size) {
+            add(element);
+        } else {
+            for (int i = size - 1; i >= index; i--) {
+                elements[i + 1] = elements[i];
+            }
+            size++;
+            elements[index] = element;
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public E get(int index) {
-        // TODO(你): 校验 index ∈ [0, size-1]；强转返回（注意 unchecked cast 的位置）
-        throw new UnsupportedOperationException("TODO: 实现 get(int)");
+        checkElementIndex(index);
+        return (E) elements[index];
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public E set(int index, E element) {
-        // TODO(你): 校验下标；取出旧值；覆盖；返回旧值
-        throw new UnsupportedOperationException("TODO: 实现 set(int, E)");
+        checkElementIndex(index);
+        Object old = elements[index];
+        elements[index] = element;
+        return (E) old;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public E removeAt(int index) {
-        // TODO(你): 校验下标；取出旧值；把 (index, size) 整体前移一位；size--；把末尾槽位置 null
-        throw new UnsupportedOperationException("TODO: 实现 removeAt(int)");
+        checkElementIndex(index);
+        Object old = elements[index];
+        for (int i = index; i < size - 1; i++) {
+            elements[i] = elements[i + 1];
+        }
+        elements[size - 1] = null;
+        size--;
+        return (E) old;
     }
 
     @Override
     public boolean remove(E element) {
-        // TODO(你): 借助 indexOf 找到下标；命中则 removeAt 并返回 true；否则 false
-        //          element 为 null 时按已定口径走（indexOf 是 null-aware，不会 NPE）
-        throw new UnsupportedOperationException("TODO: 实现 remove(E)");
+        // element 为 null 时按已定口径走（indexOf 是 null-aware，不会 NPE）
+        int index = indexOf(element);
+        if (index != -1) {
+            removeAt(index);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public int indexOf(E element) {
-        // TODO(你): 用 Objects.equals 做相等判定（null-aware），返回首个匹配下标，未命中返回 -1
-        //          坑：别写成 element.equals(...)，element 为 null 时会 NPE
-        throw new UnsupportedOperationException("TODO: 实现 indexOf(E)");
+        // 坑：别写成 element.equals(...)，element 为 null 时会 NPE
+        for (int i = 0; i < size; i++) {
+            if (Objects.equals(elements[i],element)) return i;
+        }
+        return -1;
     }
 
     @Override
     public boolean contains(E element) {
-        // TODO(你): 基于 indexOf 实现
-        throw new UnsupportedOperationException("TODO: 实现 contains(E)");
+        return indexOf(element) != -1;
     }
 
     @Override
     public void clear() {
-        // TODO(你): 清空所有槽位引用（不要让 GC 无法回收），size 置 0
-        //          口径已定：换新数组（见类注释）。新数组容量取多少由你定，先想清代价
-        //          （容量退回初始值后，后续 add 要重新扩容）
-        throw new UnsupportedOperationException("TODO: 实现 clear()");
+        size = 0;
+        elements = new Object[MyList.DEFAULT_CAPACITY];
     }
 
     /**
@@ -129,8 +168,12 @@ public class MyArrayList<E> implements MyList<E> {
      * <p>还要能回答：扩容一次要拷贝多少个引用？均摊代价怎么算？
      */
     private void ensureCapacity(int minCapacity) {
-        // TODO(你): 实现扩容
-        throw new UnsupportedOperationException("TODO: 实现 ensureCapacity(int)");
+        if (minCapacity <= elements.length) return;
+        int oldCapacity = elements.length;
+        int newCapacity = Math.max(minCapacity, oldCapacity + (oldCapacity >> 1));
+        Object[] newArr = new Object[newCapacity];
+        System.arraycopy(elements, 0, newArr, 0, size);
+        elements = newArr;
     }
 
     /**
@@ -140,8 +183,15 @@ public class MyArrayList<E> implements MyList<E> {
      * {@link #removeAt(int)} 用 {@code [0, size-1]}；{@code add(int, E)} 用 {@code [0, size]}。
      * 单开一个只校验 {@code [0, size-1]} 的方法是不够的。
      */
-    private void checkIndex(int index) {
-        // TODO(你): 实现下标校验
-        throw new UnsupportedOperationException("TODO: 实现 checkIndex(int)");
+    private void checkElementIndex(int index) {
+        if (index >= size || index < 0) {
+            throw new IndexOutOfBoundsException("索引超出范围");
+        }
+    }
+
+    private void checkPositionIndex(int index) {
+        if (index > size || index < 0) {
+            throw new IndexOutOfBoundsException("索引超出范围");
+        }
     }
 }
