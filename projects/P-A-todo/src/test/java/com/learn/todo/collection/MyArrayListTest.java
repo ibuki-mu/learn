@@ -3,10 +3,13 @@ package com.learn.todo.collection;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -19,11 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *   <li>只跑本类：{@code mvn test -Dtest=MyArrayListTest}</li>
  * </ul>
  *
- * <p><b>现状</b>：{@link MyArrayList} 尚未实现，本测试现在必然全红——
- * 这正是 M1 的第一个目标：让它全绿。
- *
- * <p><b>本文件只覆盖基本路径。</b>边界用例由你补进 {@link EdgeCases}，
- * 每条断言写清「你预期的值」。
+ * <p><b>覆盖范围</b>：前半部分是基本路径；{@link EdgeCases} 是边界用例，
+ * 断言「非法输入必须被拒绝，且拒绝前后 size 与内容不变」。
  */
 @DisplayName("MyArrayList 冒烟测试")
 class MyArrayListTest {
@@ -209,27 +209,186 @@ class MyArrayListTest {
     }
 
     /**
-     * 边界用例：<b>由你自己补充</b>，至少覆盖下面这些。
-     *
-     * <ul>
-     *   <li>{@code get(-1)} / {@code get(size)} 抛 {@code IndexOutOfBoundsException}</li>
-     *   <li>空表 {@code removeAt(0)} 的行为</li>
-     *   <li>{@code add(int, E)} 在 {@code index == size} 与 {@code index == size + 1} 的差异</li>
-     *   <li>{@code indexOf(null)} 与 {@code add(null)} 是否符合你在 {@link MyList} 声明的契约</li>
-     *   <li>{@code new MyArrayList(-1)} 抛 {@code IllegalArgumentException}</li>
-     *   <li>{@code clear()} 之后还能继续 {@code add}</li>
-     * </ul>
-     *
-     * <p>提示：{@code assertThrows(IndexOutOfBoundsException.class, () -> list.get(-1));}
+     * 边界用例。断言形状统一的用参数化；「拒绝后状态不变」是每条的核心。
      */
     @Nested
-    @DisplayName("边界用例（待你补充）")
+    @DisplayName("边界用例")
     class EdgeCases {
 
+        /** 单元素列表，用于验证非法下标不会改动状态。 */
+        private MyArrayList<String> oneElement() {
+            MyArrayList<String> list = new MyArrayList<>();
+            list.add("a");
+            return list;
+        }
+
+        @ParameterizedTest(name = "get({0})")
+        @ValueSource(ints = {-1, 1, 2})
+        void getRejectsAndKeepsState(int index) {
+            MyArrayList<String> list = oneElement();
+            assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.get(index));
+            assertEquals(1, list.size());
+            assertEquals("a", list.get(0));
+        }
+
+        @ParameterizedTest(name = "set({0}, x)")
+        @ValueSource(ints = {-1, 1, 2})
+        void setRejectsAndKeepsState(int index) {
+            MyArrayList<String> list = oneElement();
+            assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.set(index, "x"));
+            assertEquals(1, list.size());
+            assertEquals("a", list.get(0));
+        }
+
+        @ParameterizedTest(name = "removeAt({0})")
+        @ValueSource(ints = {-1, 1, 2})
+        void removeAtRejectsAndKeepsState(int index) {
+            MyArrayList<String> list = oneElement();
+            assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.removeAt(index));
+            assertEquals(1, list.size());
+            assertEquals("a", list.get(0));
+        }
+
         @Test
-        @DisplayName("TODO: 用 assertThrows / assertEquals 补边界断言")
-        void todo() {
-            // TODO(你): 删掉这个占位测试，换成你设计的边界用例
+        @DisplayName("空表 removeAt(0) 抛契约异常")
+        void emptyRemoveAtRejects() {
+            MyArrayList<String> list = new MyArrayList<>();
+            assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.removeAt(0));
+            assertEquals(0, list.size());
+        }
+
+        @Test
+        @DisplayName("满表 removeAt(size) 不能泄漏 ArrayIndexOutOfBoundsException")
+        void fullListRemoveAtSizeRejects() {
+            MyArrayList<String> list = new MyArrayList<>(2);
+            list.add("a");
+            list.add("b");
+            assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.removeAt(2));
+            assertEquals(2, list.size());
+            assertEquals("a", list.get(0));
+            assertEquals("b", list.get(1));
+        }
+
+        @Test
+        @DisplayName("add(size) 合法，追加到末尾")
+        void addAtSizeAppends() {
+            MyArrayList<String> list = oneElement();
+            list.add(1, "b");
+            assertEquals(2, list.size());
+            assertEquals("a", list.get(0));
+            assertEquals("b", list.get(1));
+        }
+
+        @Test
+        @DisplayName("add(0) 插入头部")
+        void addAtZeroInserts() {
+            MyArrayList<String> list = oneElement();
+            list.add(0, "z");
+            assertEquals(2, list.size());
+            assertEquals("z", list.get(0));
+            assertEquals("a", list.get(1));
+        }
+
+        @ParameterizedTest(name = "add({0}, x)")
+        @ValueSource(ints = {-1, 2})
+        void addOutOfRangeRejects(int index) {
+            MyArrayList<String> list = oneElement();
+            assertThrowsExactly(IndexOutOfBoundsException.class, () -> list.add(index, "x"));
+            assertEquals(1, list.size());
+            assertEquals("a", list.get(0));
+        }
+
+        @Test
+        @DisplayName("null 可存、可查、可删，且删除首个")
+        void nullIsAllowedAndNullAware() {
+            MyArrayList<String> list = new MyArrayList<>();
+            list.add(null);
+            list.add("a");
+            list.add(null);
+
+            assertEquals(0, list.indexOf(null));
+            assertTrue(list.contains(null));
+
+            assertTrue(list.remove(null));
+            assertEquals(2, list.size());
+            assertEquals("a", list.get(0));
+            assertNull(list.get(1));
+        }
+
+        @Test
+        @DisplayName("默认容量 10，装满后扩到 15")
+        void defaultCapacityGrowsTo15() {
+            MyArrayList<String> list = new MyArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                list.add("v" + i);
+            }
+            assertEquals(10, list.capacity());
+            list.add("v10");
+            assertEquals(15, list.capacity());
+            assertEquals(11, list.size());
+        }
+
+        @Test
+        @DisplayName("容量 0 起：1 → 2 → 3 → 4 → 6（minCapacity 兜底）")
+        void zeroCapacityBackstop() {
+            MyArrayList<String> list = new MyArrayList<>(0);
+            int[] expected = {1, 2, 3, 4, 6};
+            for (int i = 0; i < expected.length; i++) {
+                list.add("v" + i);
+                assertEquals(expected[i], list.capacity(), "第 " + (i + 1) + " 次 add 后容量");
+            }
+        }
+
+        @Test
+        @DisplayName("容量 5 加 6 个扩到 7")
+        void capacityFiveGrowsToSeven() {
+            MyArrayList<String> list = new MyArrayList<>(5);
+            for (int i = 0; i < 6; i++) {
+                list.add("v" + i);
+            }
+            assertEquals(7, list.capacity());
+        }
+
+        @Test
+        @DisplayName("负数容量抛 IllegalArgumentException")
+        void negativeCapacityRejected() {
+            assertThrowsExactly(IllegalArgumentException.class, () -> new MyArrayList<String>(-1));
+        }
+
+        @Test
+        @DisplayName("clear 后可继续 add")
+        void clearThenAdd() {
+            MyArrayList<String> list = new MyArrayList<>();
+            list.add("a");
+            list.add("b");
+            list.clear();
+            assertEquals(0, list.size());
+            assertTrue(list.isEmpty());
+            list.add("c");
+            assertEquals(1, list.size());
+            assertEquals("c", list.get(0));
+        }
+
+        @Test
+        @DisplayName("删首个匹配，保留后面的同名元素")
+        void removeDeletesFirstMatch() {
+            MyArrayList<String> list = new MyArrayList<>();
+            list.add("a");
+            list.add("b");
+            list.add("a");
+            assertTrue(list.remove("a"));
+            assertEquals(2, list.size());
+            assertEquals("b", list.get(0));
+            assertEquals("a", list.get(1));
+        }
+
+        @Test
+        @DisplayName("未命中返回 false 且不改状态")
+        void removeMissingReturnsFalse() {
+            MyArrayList<String> list = oneElement();
+            assertFalse(list.remove("zzz"));
+            assertEquals(1, list.size());
+            assertEquals("a", list.get(0));
         }
     }
 }

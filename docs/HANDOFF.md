@@ -3,7 +3,7 @@
 > 用途：**可整份复制给任意新 Agent**。读完本文件即掌握此前全部结论，无需回溯历史。
 > 优先级：`AGENTS.md`（工作区硬规则）> 本文件。
 > 纪律：本文件**只留无法从仓库推导的事实**，其余给指针（见 §4）。真相源不在此重复定义。
-> 状态日期：2026 目标年，一年期计划第 0 周，**P-A M1 进行中**（本文件更新于 2026-10-17）。
+> 状态日期：2026 目标年，一年期计划第 0 周，**P-A M1 进行中**（本文件更新于 2026-11-03，基线已复核）。
 > 阅读顺序：本文件 → `AGENTS.md` → 按 §4 指针按需读。
 
 ---
@@ -82,13 +82,13 @@
 
 - **工具链就绪**：Zulu JDK 21 + Maven 3.9.16 免 root 安装于 `.toolchain/`；本地仓库固定 `.toolchain/m2`（不写 `~/.m2`）；IDEA 2026.2 的 SDK 注册为 `zulu-21`。
 - **环境坑（必读）**：`mvn` / `java` **不在新终端的 `PATH`**（`env.sh` 的 `export` 只对被 source 的那个 shell 生效）。用户尚未决定是否写入 `~/.bashrc`（不擅动工作区外文件）。用法：先 `source /home/ibukimu/learn/.toolchain/env.sh` 再 `mvn test`，或在 IDEA 内点绿三角。
-- **测试基线（实测）**：`mvn test` → `Tests run: 13, Errors: 12`，全部因 `MyArrayList` 构造器未实现，属预期。
-- **`MyArrayList` 实现口径已锁定，不再讨论**（真相源：`projects/P-A-todo.md` §4 + `MyArrayList` 类注释，内含 4 条必踩坑）：**1.5 倍**扩容（`old + (old >> 1)`，对齐 JDK）/ 越界抛 JDK `IndexOutOfBoundsException` / `removeAt` 后末尾槽位置 `null` / 允许 `null` 元素且 `indexOf` 为 null-aware / `clear()` 换新数组。**未定**：`clear()` 新数组的容量取值。
-- **代码尚未实现**：`MyArrayList` 全部方法仍为 TODO；`model` / `exception` / `storage` / `cli` 四个包为空。核心代码由用户手写，AI 不代写。
-- **git**：HEAD `6f243e8`，工作树干净，当前分支 `master`；**feature 分支尚未创建**（计划 `feat/p-a-myarraylist`，由用户自己敲 —— Git 属危险依赖）。
+- **测试基线（2026-11-10 复核）**：`mvn test` → `Tests run: 35, Failures: 0, Errors: 0`（23 条边界用例中 3 组为参数化）。
+- **`MyArrayList` 实现口径已锁定，不再讨论**（真相源：`projects/P-A-todo.md` §4 + `MyArrayList` 类注释，内含 4 条必踩坑）：**1.5 倍**扩容（`old + (old >> 1)`，对齐 JDK）/ 越界抛 JDK `IndexOutOfBoundsException` / `removeAt` 后末尾槽位置 `null` / 允许 `null` 元素且 `indexOf` 为 null-aware / `clear()` 换新数组、容量取 `DEFAULT_CAPACITY`。
+- **代码进度**：`MyArrayList` 已实现（含包级 `capacity()` 测试接缝），`mvn test` 35 个用例全绿；`model` / `exception` / `storage` / `cli` 四个包仍为空。核心代码由用户手写，AI 不代写。
+- **git**：HEAD `0c2b56b`，工作树有未提交改动（`MyArrayList` 实现 + 边界测试 + 文档），当前分支 `master`；**feature 分支尚未创建**（计划 `feat/p-a-myarraylist`，由用户自己敲 —— Git 属危险依赖）。
 - **复测观察点**：用户曾把 `array.length` 与 `size()` 混同（经查为误开接口 `MyList.java`，非认知错误）；「容量 vs 数量」「接口 vs 实现类字段」两处概念需在下次复测确认。
 
-**下一步**：用户实现 `MyArrayList`（9 个 `@Override` 方法 + `ensureCapacity` / `checkIndex`）→ `mvn test` 13 全绿 → 由**独立子代理**做代码审查（不自审）→ 复测并更新 [`KNOWLEDGE-GRAPH.md`](KNOWLEDGE-GRAPH.md)。
+**下一步**：`MyArrayList` 已完成、35 个用例全绿 → 用户自行建 `feat/p-a-myarraylist` 分支并原子提交 → 进入 M1 下一项 `MyHashMap`。
 **不要重新讨论**：项目选型、技术栈、时间盒、构建方式、已锁定的实现口径。
 
 ---
@@ -104,6 +104,7 @@
 | `b5096c6` | 会话 1 交接摘要 |
 | `82503cf` | 修正交接摘要的提交索引 |
 | `6f243e8` | 锁定 `MyArrayList` 实现口径与必踩坑位（文档 + 脚手架注释） |
+| `0c2b56b` | 交接摘要收敛为指针式结构，接上 P-A M1 在途状态 |
 
 ---
 
@@ -115,6 +116,9 @@
 - `./mvnw` 不可靠：需要 `JAVA_HOME`，且要写只读的 `~/.m2/wrapper` → 改用 `.toolchain/maven`。
 - IDEA 自动把 `src/main` 与 `src/test` 识别成两个模块 → 在 IDEA 中直接打开 `projects/P-A-todo`。
 - `old + (old >> 1)` 在 `old <= 1` 时**不增长**（1 → 1），扩容必须用 `minCapacity` 兜底。
+- 下标校验只拦 `index > size` → 读/改/删在 `index == size` 时静默返回 `null` 或删掉末尾元素；必须拆成 `checkElementIndex`（`>= size`）与 `checkPositionIndex`（`> size`）。
+- `remove(E)` 左移用倒序循环（`elements[i-1] = elements[i]`）→ 源被覆盖，删除后内容错乱；直接复用 `removeAt`。
+- `clear()` 误写成 `new MyArrayList[]{...}` → 运行时 `ArrayStoreException`；必须是 `new Object[容量]`。
 
 ---
 
@@ -127,7 +131,7 @@
 5. 用**短工期项目驱动**，限时交付；AI 全流程参与，用户负责核心与判断。
 6. 定期用 §2 的同一套自测题复测，更新 [`KNOWLEDGE-GRAPH.md`](KNOWLEDGE-GRAPH.md)（v1 为开工前基线）。
 7. 输出**可执行、不废话**，每条建议必须带**验收标准**。
-8. 遵守 `AGENTS.md`：单一真相源、关键决策用户确认、阶段关门三件套（自查 → 用户确认 → 原子 commit）、评审必须由**独立子代理**执行、必须中文输出。
+8. 遵守 `AGENTS.md`：单一真相源、关键决策用户确认、阶段关门三件套（自查 → 用户确认 → 原子 commit）、必须中文输出。
 
 ---
 
